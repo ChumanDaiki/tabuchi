@@ -1,0 +1,238 @@
+/**/
+@keyframes blink{
+  0% {opacity:0.4;}
+  100% {opacity:1;}
+}
+
+html {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+ons-back-button{
+background-color: #fafafa;
+}
+
+table{
+width: 100%;
+border-collapse: collapse;
+}
+
+table tr{
+border-bottom: solid 2px white;
+}
+
+table tr:last-child{
+border-bottom: none;
+}
+
+table th{
+position: relative;
+text-align: left;
+width: auto;
+background-color: #808080;
+color: white;
+text-align: center;
+padding: 10px 0;
+}
+
+table th:after{
+display: block;
+content: "";
+width: 0px;
+height: 0px;
+position: absolute;
+top:calc(50% - 10px);
+right:-10px;
+border-left: 10px solid #808080;
+border-top: 10px solid transparent;
+border-bottom: 10px solid transparent;
+}
+
+table td{
+text-align: left;
+width: auto;
+text-align: center;
+background-color: #eee;
+padding: 10px 0;
+}
+
+.purple{
+background: #CC99FF;
+}
+.yellow{
+background: #FFFF99;
+}
+.blue{
+background: #CCECFF;
+}
+.pink{
+background: #FFCCFF;
+}
+.green{
+background: #CCFFCC;
+}
+caption{
+text-align: left;
+}
+.brown{
+background: #D2691E;
+}
+.salmon{
+background: #FA8072;
+}
+.a_card{
+background-color: #CCECFF;
+}
+.c_card{
+background-color: #FFCCFF;
+}
+.zan_card{
+width: 95%;
+background-color: #CCFFCC;
+}
+.sa_card{
+width: 100%;
+background-color: #CCECFF;
+}
+.sb_card{
+width: 100%;
+background-color: #CC99FF;
+}
+.sc_card{
+width: 100%;
+background-color: #FFCCFF;
+}
+.taiki_card{
+background-color: #cb0000;
+color:#FFFFFF;
+}
+.dandori_card{
+background-color: #00b050;
+color:#FFFFFF;
+}
+.kado_card{
+background-color: #0070c0;
+color:#FFFFFF;
+}
+.le_taiki_card{
+background-color: #808080;
+color:#FFFFFF;
+}
+.early_time_card{
+  background-color: #1e90ff;
+  color: #FFFFFF;
+}
+.late_time_card{
+  background-color: #8251b3;
+  color: #FFFFFF;
+}
+.px{
+font-size:20px;
+width: 40%;
+}
+.date{
+font-size:20px;
+text-align:right;
+}
+select{
+width: 50%;
+font-size: 20px;
+}
+.center {
+text-align: center;
+}
+
+#toolbar div {
+color: #FFFFFF;
+}
+
+ons-card:hover{
+ opacity: 0.7;
+}
+
+.text-contents {
+  display: flex;
+}
+
+.bikou {
+  overflow-y: scroll;
+  white-space: nowrap;
+  margin-left: 5px;
+  width: 50%;
+  height: 300px;
+  border: 1px solid #0c0c0c;
+}
+
+.contents {
+  width: 50%;
+  height: 300px;
+}
+
+ul li a:hover {
+  opacity: 0.8;
+}
+
+.img-scroll-list {
+  list-style: none;
+  overflow-x: auto;
+  white-space: nowrap;
+  width: 100%;
+  text-align: center;
+}
+
+.img-scroll-list li {
+  display: inline-block;
+}
+
+.img-scroll-list img {
+  display: block;
+  height: auto;
+  width: 100%;
+}
+
+#img-sizeup-modal {
+  display: none;
+  height: 100vh;
+  left: 0;
+  position: fixed;
+  top: 0;
+  width: 100%;
+}
+
+#modal-background {
+  background: rgba(0, 0, 0, 0.8);
+  height: 100vh;
+  position: absolute;
+  width: 100%;
+}
+
+#popup-img {
+  position: absolute;
+  width: 80%;
+  max-width: 800px;
+  top: 80px;
+  left: 0;
+  right: 0;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+#close-modal {
+  color: #fff;
+  font-size: 40px;
+  position: absolute;
+  right: 20px;
+  top: 0;
+}
+
+#close-modal a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.active {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

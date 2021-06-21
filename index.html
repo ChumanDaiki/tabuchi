@@ -1,0 +1,569 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta http-equiv="Content-Security-Policy" content="default-src * era: data:; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'">
+  <script src="lib/angular/angular.min.js"></script>
+  <script src="lib/onsenui/js/onsenui.min.js"></script>
+  <script src="lib/onsenui/js/angular-onsenui.min.js"></script>
+  <script src="components/loader.js"></script>
+  <script async src="https://cdn.jsdelivr.net/npm/pwacompat@2.0.7/pwacompat.min.js"></script>
+  <script src="www/components/monaca-jquery/jquery.js"></script>
+
+  <link rel="stylesheet" href="components/loader.css">
+  <link rel="stylesheet" href="lib/onsenui/css/onsenui.css">
+  <link rel="stylesheet" href="lib/onsenui/css/onsen-css-components.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+
+  <script>
+    var app_key = "3976b49ae7bf357ca35eddb67e5129e184328d647c4a35da9b527d6bdfa75089";
+    var cli_key = "256db84c5262998549daa37ce3a808b9022128b9a92bb8bd2b2e10a258d252c7";
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js').then(function (registration) {
+        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+      }).catch(function (err) {
+        console.log('ServiceWorker registration failed: ', err);
+      });
+    }
+
+    ons.bootstrap()
+      .controller('AppController', function($scope) {
+      
+        this.load = function(page) {
+          $scope.splitter.content.load(page);
+          $scope.splitter.right.close();
+        };
+
+        this.toggle = function() {
+          $scope.splitter.right.toggle();
+        };
+        
+    });
+
+    ons.ready(function() {
+        console.log("Onsen UI is ready!");
+    });
+
+  </script>
+</head>
+<body>
+  <ons-splitter ng-controller="AppController as app" var="splitter">
+    <ons-splitter-side side="right" width="220px" collapse swipeable>
+      <ons-page>
+        <ons-list>
+          <ons-lazy-repeat id="line-list"></ons-lazy-repeat>
+        </ons-list>
+        <script>
+          var line_list = document.getElementById("line-list");
+          var s_ncmb = new NCMB(app_key,cli_key);
+          var q_rli = s_ncmb.DataStore("total");
+          q_rli.fetchAll()
+               .then(function(t_rli){
+                  line_list.delegate = {
+                    createItemContent: function (i) {
+                      return ons.createElement(`<ons-list-item onclick="navi.pushPage('0-1_kyusui_line.html',{data: {line:'${t_rli[i].get("E_line")}',machine:'${t_rli[i].get("A_machine")}'}})" tappable>【${i}】【${t_rli[i].get("E_line")}】</ons-list-item>`);
+                    },
+                    countItems: function () {
+                      return t_rli.length;
+                    }
+                  };
+                  line_list.refresh();
+              });
+        </script>
+      </ons-page>
+    </ons-splitter-side>
+    <ons-splitter-content>
+      <ons-navigator id="navi" page="home.html"></ons-navigator>
+    </ons-splitter-content>
+  </ons-splitter>
+
+  <template id="home.html">
+    <ons-page>
+      <ons-toolbar>
+        <div class="right">
+          <ons-toolbar-button ng-click="app.toggle()">
+            <ons-icon icon="md-menu"></ons-icon>
+          </ons-toolbar-button>
+        </div>
+        <div class="center">ホーム</div>
+      </ons-toolbar>
+
+      <p style="text-align: center; opacity: 0.6; padding-top: 20px;">
+        左にスワイプしてラインを選択してください！
+        <br>
+      </p>
+      <script>
+        ons.getScriptPage().addEventListener('show',function(event){
+          let today = new Date();
+          let year = today.getFullYear();
+          let month = ("0"+(today.getMonth() + 1)).slice(-2);
+          let date =  ("0"+today.getDate()).slice(-2);
+          let search_today = today.getFullYear() + "_" +  month + "_" + date;
+          let app_key = "3976b49ae7bf357ca35eddb67e5129e184328d647c4a35da9b527d6bdfa75089";
+          let cli_key = "256db84c5262998549daa37ce3a808b9022128b9a92bb8bd2b2e10a258d252c7";
+          let ncmb = new NCMB(app_key,cli_key);
+          $('.toolbar').css('background-color','#fafafa');
+          $('.toolbar').css('animation','initial');
+          let line_data = [];
+          var repeatSelect = document.getElementById("repeatSelect");
+          var total = ncmb.DataStore("total");
+          var hibi = ncmb.DataStore("test_" + search_today);
+          total.fetchAll()
+               .then(function(t_result){
+                  let count_total = new Promise((resolve,reject) => {
+                    for(k=0;k<t_result.length;k++){
+                      line_data[k] = {"machine" : t_result[k].get("A_machine") ,"line" : t_result[k].get("E_line") ,"progress" : 0};
+                    }
+                    resolve();
+                  }).then((one) => {
+                    function task1(){
+                      return new Promise(function(resolve,reject){
+                        let c = 0;
+                        for(var l=0;l<line_data.length;l++){
+                          hibi.equalTo("B_machine",line_data[l].machine)
+                              .order("A_tod",true)
+                              .limit(1)
+                              .fetchAll()
+                              .then(function(h_result){
+                                if(h_result.length == 0){
+                                  line_data[c].progress =  'nothing';
+                                }else{
+                                  line_data[c].progress = h_result[0].get("G_progress_time");
+                                }
+                                c++;
+                                if(c === line_data.length){
+                                  resolve();
+                                }
+                              });
+                        }
+                      }); 
+                    }
+                    function task2(){
+                      return new Promise(function(resolve, reject){
+                        line_data.forEach(function(element){
+                          //alert(element.progress);
+                        });
+                        resolve();
+                      });
+                    }
+                    task1().then(task2);
+                  });
+               });
+        });
+      </script>
+    </ons-page>
+  </template>
+
+  <template id="0-1_kyusui_line.html">
+    <ons-page>
+      <ons-toolbar>
+        <div class="left">
+          <ons-back-button>戻る</ons-back-button>
+        </div>
+        <div class="center" id="toolbar">
+          <div>【ライン生産状況】</div>
+        </div>
+      </ons-toolbar>
+
+      <div id="total-parent">
+        <ons-lazy-repeat id="total-list"></ons-lazy-repeat>
+      </div>
+
+      <div style="text-align: center; margin: 10px;">
+        <table>
+          <tr>
+            <th>製品コード</th><td id="code"></td>
+            <th>個数</th><td id="kazu"></td>
+          </tr>
+          <tr>
+            <th>製品名</th><td id="name"></td>
+            <th>C/T比較</th><td id="cycle_time"></td>
+          </tr>
+        </table>
+          
+      </div>
+      <hr>
+      <div class="text-contents">
+        <div class="bikou">
+          <p>備考･注意事項等</p>
+        </div>
+        <div class="contents">
+          <ons-list>
+            <div id="mw-parent">
+              <ons-lazy-repeat id="mw-list"></ons-lazy-repeat>
+            </div>
+
+            <div id="result-parent">
+              <ons-lazy-repeat id="result-list"></ons-lazy-repeat>
+            </div>
+          </ons-list>
+        </div>
+      </div>
+      <div class="image-container">
+        <ul class="img-scroll-list" id="image-list">
+        </ul>
+      </div>
+
+      <div id="img-sizeup-modal" class="">
+        <div id="modal-background"></div>
+        <div class="modal-wrapper">
+          <img id="popup-img" src="" alt="">
+          <p id="close-modal"><a href="">×</a></p>
+        </div>
+      </div>
+      
+      <script>
+        var c_array = [],n_array = [],k_array = [];
+        var re_code,re_name,start_time = "",progress_time = "";
+        var l_name = "",m_name = "",code = "";
+
+        function twoDigit(num) {
+          let ret;
+          if( num < 10 ) 
+          ret = "0" + num; 
+          else 
+          ret = num; 
+          return ret;
+        }
+        
+        function twoTod(tod){
+          let houR,minuteS,secondS;
+            //各数値に0パディングを実施
+            let re_tod = ('0000' + tod).slice(-6)
+            re_tod = re_tod.substr(0,2) + ":" + re_tod.substr(2,2) + ":" + re_tod.substr(4,2);
+            return new Date('2020/04/01 ' + re_tod);
+          }
+          
+        function calc_tod(start_tod){
+            var kumitate_time,gensan_time = 0;
+            var now_tod;
+            let now_time = new Date();
+            let nowHour = twoDigit(now_time.getHours());
+            let nowMin = twoDigit(now_time.getMinutes());
+            let nowSec = twoDigit(now_time.getSeconds());
+            var houR,minuteS,secondS;
+            
+            
+            start_tod = Number(start_tod.replaceAll(":",""));
+            now_tod = Number(String(nowHour) + String(nowMin) + String(nowSec));
+            
+            //開始が10：10より前で現時刻が10：10より後
+            if(start_tod < 101000 && 101000 < now_tod){
+              
+              //開始が10：10より前で現時刻が12：50より後
+              if(125000 < now_tod){
+                
+                //開始が10：10より前で現時刻が15：10より後
+                if(151000 < now_tod){
+                  
+                  //開始が10：10より前で現時刻が17：00より後
+                  if(170000 < now_tod){
+                    //10+40+10+10分の秒数減算
+                    gensan_time = 70 * 60;
+                  }else{
+                    //10+40+10分の秒数減算
+                    gensan_time = 60 * 60;
+                  }
+                }else{
+                  //10+40分の秒数減算
+                  gensan_time = 50 * 60;
+                }
+              }else{
+                //10分の秒数減算
+                gensan_time = 10 * 60;
+              }
+            }
+            
+            //開始が12：50より前で現時刻が12：50より後
+            if(start_tod >= 101000 && start_tod < 125000 && 125000 < now_tod){
+              //開始が12：50より前で現時刻が15：10より後
+              if(151000 < now_tod){
+                
+                //開始が12：50より前で現時刻が17：00より後
+                if(170000 < now_tod){
+                  //40+10+10分の秒数減算
+                  gensan_time = 60 * 60;
+                }else{
+                  //40+10分の秒数減算
+                  gensan_time = 50 * 60;
+                }
+              }else{
+                //40分の秒数減算
+                gensan_time = 40 * 60;
+              }
+            }
+
+            //開始が15：10より前で現時刻が15：10より後
+            if(start_tod >= 125000 && start_tod < 151000 && 151000 < now_tod){
+              
+              //開始が15：10より前で現時刻が17：00より後
+              if(170000 < now_tod){
+                //10+10分の秒数減算
+                gensan_time = 20 * 60;
+              }else{
+                //10分の秒数減算
+                gensan_time = 10 * 60;
+              }
+     
+
+            }
+
+            //開始が17：00より前で現時刻が17：00より後
+            if(start_tod >= 151000 && start_tod < 170000 && 170000 < now_tod){
+              //10分の秒数減算
+              gensan_time = 10 * 60;
+            }
+
+            kumitate_time = twoTod(now_tod).getTime() - twoTod(start_tod).getTime();
+            return (Math.abs(kumitate_time) / (1000) - gensan_time);
+          }
+
+        function calc_count(){
+            var today = new Date();
+            var month = ("0"+(today.getMonth() + 1)).slice(-2);
+            var  date =  ("0"+today.getDate()).slice(-2);
+            search_today = today.getFullYear() + "_" +  month + "_" + date;
+            var app_key = "3976b49ae7bf357ca35eddb67e5129e184328d647c4a35da9b527d6bdfa75089";
+            var cli_key = "256db84c5262998549daa37ce3a808b9022128b9a92bb8bd2b2e10a258d252c7";
+            var result_list = document.getElementById('result-list');
+            var ncmb = new NCMB(app_key,cli_key);
+            var zero = ncmb.DataStore("test_" + search_today);
+            let kosu = 0,count = 0;
+            zero.equalTo("F_time","0")
+                .equalTo("B_machine",m_name)
+                .fetchAll()
+                .then(function(result_0){
+                  let code_search = new Promise((resolve,reject) => {
+                    for(i=0;i<result_0.length;i++){
+                      c_array[i] = result_0[i].get("C_code");
+                      n_array[i] = result_0[i].get("D_p_name");
+                    }
+                    resolve();
+                  });
+                  code_search.then((one) => {
+                              var set_code = new Set(c_array);
+                              var set_name = new Set(n_array);
+                              re_code = Array.from(set_code);
+                              re_name = Array.from(set_name);
+                              var z_code = ncmb.DataStore("test_" + search_today);
+                              for(j=0;j<re_code.length;j++){
+                                  z_code.equalTo("C_code",re_code[j])
+                                        .equalTo("B_machine",m_name)
+                                        .limit(1000)
+                                        .fetchAll()
+                                        .then(function(result_code){
+                                          kosu = 0;
+                                          let count_kosu = new Promise((e_resolve,e_reject) => {
+                                            for(k=0;k<result_code.length;k++){
+                                              if(result_code[k].get("F_time") !== "0"){
+                                                kosu++;
+                                              }
+                                            }
+                                            k_array[count] = kosu;
+                                            count++;
+                                            e_resolve();
+                                          });
+                                          count_kosu.then((two) => {
+                                            k_array.reverse();
+                                            result_list.delegate = {
+                                            createItemContent: function (m) {
+                                              return ons.createElement(`<ons-card class="le_taiki_card"><div style="text-align: left;color:#FFFFFF;font-size: 12pt;" class="content">コード：${re_code[m]}　【　${k_array[m]}台　】<br>品名：${re_name[m]}</div></ons-card>`);
+                                            },
+                                            countItems: function () {
+                                              return re_code.length;
+                                            }
+                                          };
+                                          result_list.refresh();
+                                          });
+                                        });
+                                }
+                            });
+                  
+               });
+               //console.log(c_array + ":" + k_array);
+          }
+
+        function test_rasp1_show(){
+            var today = new Date();
+            var month = ("0"+(today.getMonth() + 1)).slice(-2);
+            var  date =  ("0"+today.getDate()).slice(-2);
+            search_today = today.getFullYear() + "_" +  month + "_" + date;
+            var app_key = "3976b49ae7bf357ca35eddb67e5129e184328d647c4a35da9b527d6bdfa75089";
+            var cli_key = "256db84c5262998549daa37ce3a808b9022128b9a92bb8bd2b2e10a258d252c7";
+            var repeatSelect = document.getElementById("repeatSelect");
+            var p_code = document.getElementById("code");
+            var p_name = document.getElementById("name");
+            var p_kazu = document.getElementById("kazu");
+            var p_ct = document.getElementById("cycle_time");
+            var ct="0",real_ct="0",product_name="";
+            var ncmb = new NCMB(app_key,cli_key);
+            var sen = ncmb.DataStore("test_" + search_today);
+            c_array = [];
+            n_array = [];
+            k_array = [];
+            sen.order("A_tod",true)
+               .equalTo("B_machine",m_name)
+               .limit(1)
+               .fetchAll()
+               .then(function(results){
+                  let count=0,count_ct=0;
+                  var query = ncmb.DataStore("test_" + search_today);
+                  query.equalTo("C_code",results[0].get("C_code"))
+                       .equalTo("B_machine",m_name)
+                       .order("A_tod",true)
+                       .limit(1000)
+                       .fetchAll()
+                       .then(function(n_results){
+                          if(n_results[0].get("F_time") !== "0"){
+                            for(i=0;i<n_results.length;i++){
+                              if(i==0){
+                                product_name = n_results[0].get("D_p_name");
+                                ct = n_results[0].get("E_m_ct");
+                                progress_time = n_results[0].get("G_progress_time");
+                              }
+                              if(n_results[i].get("F_time") !== "0"){
+                                if((n_results[i].get("F_time") !== "1")){
+                                  count_ct++;
+                                  real_ct = Number(real_ct) + Number(n_results[i].get("F_time"));
+                                }
+                                count++;
+                              }else if(n_results[i].get("F_time") == "0"){
+                                start_time = n_results[i].get("A_tod");
+                              }
+                            }
+                            
+                            let master_kazu = calc_tod(start_time);
+
+                            master_kazu = Math.round(Number(master_kazu) / Number(ct));
+                            p_kazu.innerHTML = '<td colspan="2">' + count + '台　【計画：' + master_kazu + '台】</td>';
+                            real_ct = Math.round(Number(real_ct) / Number(count_ct));
+                            if(Number(progress_time) <= 0){
+                              progress_time = String(progress_time).replace("-","");
+                              $('.toolbar').css('background-color','#0070c0');
+                              $('.toolbar').css('animation','blink 2s ease-in-out infinite alternate');
+                              p_ct.innerHTML = '<td>【 実C/T:' + real_ct + " ﾏｽﾀC/T:" + ct + ' 】【先行:' + progress_time + '秒 (' + (progress_time/60).toFixed(1) + '分) 】</td>'
+                            }else{
+                              $('.toolbar').css('background-color','#cb0000');
+                              $('.toolbar').css('animation','blink 2s ease-in-out infinite alternate');
+                              p_ct.innerHTML = '<td>【 実C/T:' + real_ct + " ﾏｽﾀC/T:" + ct + ' 】【遅れ:' + progress_time + '秒 (' + (progress_time/60).toFixed(1) + '分) 】</td>';
+                            }
+                            
+                          }
+                          if(code.match(results[0].get("C_code")) == null){
+                            code = results[0].get("C_code");
+                            showFile(code);
+                          }else{
+                            code = results[0].get("C_code");
+                          }
+                          p_code.innerHTML = '<td>' + results[0].get("C_code") + '</td>';
+                          p_name.innerHTML = '<td>' + product_name + '</td>';
+                          var mw_list = document.getElementById('mw-list');
+                          if(results.length){
+                            mw_list.delegate = {
+                            createItemContent: function (i) {
+                                if(Number(results[i].get("F_time")) <= Number(ct)){
+                                  return ons.createElement(`<ons-card class="kado_card"><div style="text-align: left;color:#FFFFFF;font-size: 12pt;" class="content">${results[i].get("A_tod")} 【C/T:${results[i].get("F_time")}】【 ${results[i].get("C_code")}：${product_name}】</div></ons-card>`);
+                                }else{
+                                  return ons.createElement(`<ons-card class="taiki_card"><div style="text-align: left;color:#FFFFFF;font-size: 12pt;" class="content">${results[i].get("A_tod")} 【C/T:${results[i].get("F_time")}】【 ${results[i].get("C_code")}：${product_name}】</div></ons-card>`);
+                                }
+                              },
+                              countItems: function () {
+                                return results.length;
+                              }
+                            };
+                            mw_list.refresh();
+                          }
+                          calc_count();
+                        });
+               });
+          }
+
+          //ﾊﾞｰｺｰﾄﾞ読込が行われたときにﾌｧｲﾙｽﾄｱのﾃﾞｰﾀ取得
+          function showFile(code){
+            var app_key = "3976b49ae7bf357ca35eddb67e5129e184328d647c4a35da9b527d6bdfa75089";
+            var cli_key = "256db84c5262998549daa37ce3a808b9022128b9a92bb8bd2b2e10a258d252c7";
+            var ncmb = new NCMB(app_key,cli_key);
+            var files_length = 0;
+            var counter = 0;
+            //引数をもとにﾌｧｲﾙｽﾄｱの検索
+            ncmb.File.regularExpressionTo("fileName","^(?=.*" + code + "_" + ").*$")
+                     .order("fileName", true)
+                     .fetchAll()
+                     .then(function(files){
+                        // 検索後処理
+                        if(files.length){
+                          files_length = files.length;
+                          for(var j=0;j<files.length;j++){
+                            // a 要素の作成と属性の指定
+                            
+                            var newAnchor = document.createElement("img");
+                            newAnchor.setAttribute("id", "image_" + j );
+                            newAnchor.setAttribute("width", "400");
+                            newAnchor.setAttribute("height", "400");
+
+                            // li 要素の作成
+                            var newLi = document.createElement("li");
+                            newLi.appendChild ( newAnchor );
+
+                            var list = document.getElementById("image-list");
+                            list.appendChild( newLi );
+                          }
+                          
+                        }
+                        // ファイル名からファイルを取得
+                        // ダウンロード（データ形式をblobを指定）
+                        var reader = new FileReader();
+                        reader.onload = function(e) {
+                          var dataUrl = reader.result;
+                          document.getElementById("image_" + counter).src = dataUrl;
+                          counter = counter + 1;
+                        }
+                        for(var file of files){
+                          ncmb.File.download(file.fileName, 'blob')
+                                   .then(blob => {
+                                      reader.readAsDataURL(blob);
+                                   });
+                        }
+                     })
+                     .catch(function(err){
+                        // エラー処理
+                     });
+          }
+          
+          ons.getScriptPage().addEventListener('show',function(event){
+            l_name = event.target.data.line;
+            m_name = event.target.data.machine;
+            $('#toolbar div').text("【 " + l_name + "ライン生産状況 】");
+            test_rasp1_show();
+            $(function () {
+                $("#image-list").on("click", "li", function () {
+                  var selectedImg = $(this).children().attr("src");
+                  $("#popup-img").attr("src", selectedImg);
+                  var testClass = $("#popup-img").attr("src")
+                  $("#img-sizeup-modal").addClass("active").fadeIn();
+                  $("body,html").css("overflow-y", "hidden");
+                  return false
+                });
+                $("#close-modal,#modal-background,#popup-img").on("click", function () {
+                  $("#img-sizeup-modal").removeClass("active").fadeOut();
+                  $("body,html").css("overflow-y", "visible");
+                  return false
+                });
+              });
+              $(function () {
+                let selectedImg;
+                $("#image-list").on("click", function(){
+                  selectedImg = $(this).find("img").attr("src");
+                  $("#popup-img").attr("src", selectedImg);
+                });
+              });
+            //setInterval(test_rasp1_show, 5000);
+          });
+      </script>
+    </ons-page>
+  </template>
+</body>
+</html>

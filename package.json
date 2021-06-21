@@ -1,0 +1,14 @@
+{
+  "name": "test-app",
+  "version": "1.0.0",
+  "description": "test-app",
+  "main": "app.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "electron": "^1.4.12",
+    "fs": "0.0.1-security",
+    "ipc": "0.0.1",
+    "ncmb": "^2.1.3"
+  }
+}

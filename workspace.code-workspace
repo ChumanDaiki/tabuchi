@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "..\\code"
+		},
+		{
+			"name": "tabuchi",
+			"path": "..\\code\\tabuchi"
+		}
+	],
+	"settings": {
+		"git.ignoreLimitWarning": true
+	}
+}
